@@ -283,7 +283,7 @@ def tv_keys(sequence: str, delay_ms: int = 500, name: Optional[str] = None) -> s
 
 # Well-known Tizen app IDs. Others can be launched by numeric ID directly.
 APP_IDS = {
-    "netflix": "11101200001",
+    "netflix": "3201907018807",
     "youtube": "111299001912",
     "prime video": "3201512006785",
     "prime": "3201512006785",
@@ -313,15 +313,23 @@ def tv_launch_app(app: str, name: Optional[str] = None) -> str:
     r = requests.post(f"http://{tv['ip']}:8001/api/v2/applications/{app_id}", timeout=5)
     if r.status_code == 200:
         return f"Launched {app} ({app_id}) on {key}."
+    if r.status_code == 404:
+        return (f"TV has no app with ID {app_id}. Check the ID in the TV's Apps page "
+                "or pass the numeric Tizen app ID directly.")
     return f"TV answered {r.status_code} for {app}: {r.text[:200]}"
 
 
 @mcp.tool()
 def tv_apps(name: Optional[str] = None) -> str:
-    """List installed apps reported by the TV (name and app_id)."""
-    _, ws = _connect(name)
+    """List installed apps reported by the TV (name and app_id).
+
+    Some firmware never answers this request; it gives up after 8 s.
+    """
+    _, ws = _connect(name, timeout=8)
     try:
         apps = ws.app_list() or []
+    except Exception as e:  # noqa: BLE001
+        return f"TV did not return an app list ({type(e).__name__}). Launch by name or Tizen ID instead."
     finally:
         ws.close()
     return json.dumps([{"name": a.get("name"), "app_id": a.get("appId")} for a in apps], indent=2)
