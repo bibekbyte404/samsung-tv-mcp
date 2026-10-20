@@ -1,5 +1,7 @@
 # samsung-tv-mcp
 
+![samsung-tv-mcp: your TV, controlled by your AI assistant](docs/banner.png)
+
 Control a Samsung Tizen TV (2016 or newer) from Claude. Pair once, then say
 "mute the TV", "open Netflix", "press up three times" from the desktop or
 mobile app and Claude does it.
